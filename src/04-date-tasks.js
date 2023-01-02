@@ -54,7 +54,9 @@ function parseDataFromIso8601(value) {
  *    Date(2015,1,1)    => false
  */
 function isLeapYear(date) {
-  return Boolean(date);
+  date.setMonth(2);
+  date.setDate(0);
+  return date.getDate() === 29;
 }
 
 
@@ -73,8 +75,14 @@ function isLeapYear(date) {
  *    Date(2000,1,1,10,0,0),  Date(2000,1,1,10,0,0,250)     => "00:00:00.250"
  *    Date(2000,1,1,10,0,0),  Date(2000,1,1,15,20,10,453)   => "05:20:10.453"
  */
-function timeSpanToString(/* startDate, endDate */) {
-  throw new Error('Not implemented');
+function timeSpanToString(startDate, endDate) {
+  const diff = endDate - startDate;
+  const msec = endDate.getMilliseconds() - startDate.getMilliseconds();
+  const sec = Math.floor((diff / 1000)) % 60;
+  const min = Math.floor(diff / (1000 * 60)) % 60;
+  const hour = Math.floor(diff / (1000 * 60 * 60));
+
+  return `${hour < 10 ? '0' : ''}${hour}:${min < 10 ? '0' : ''}${min}:${sec < 10 ? '0' : ''}${sec}.${msec < 10 ? '00' : ''}${msec}`;
 }
 
 
@@ -94,8 +102,20 @@ function timeSpanToString(/* startDate, endDate */) {
  *    Date.UTC(2016,3,5,18, 0) => Math.PI
  *    Date.UTC(2016,3,5,21, 0) => Math.PI/2
  */
-function angleBetweenClockHands(/* date */) {
-  throw new Error('Not implemented');
+function angleBetweenClockHands(date) {
+  let minutes = date.getMinutes() * 6;
+  let hour = (date.getUTCHours() * 30 + date.getMinutes() * 0.5) % 360;
+  let diff = 0;
+
+  if (hour === 360) hour = 0;
+  if (hour > 180 && minutes === 0) minutes = 360;
+  if (hour > 0 && hour < 180 && minutes > 180 && minutes !== 360) {
+    diff = 360 - minutes + hour;
+  } else {
+    diff = Math.abs(Math.max(hour - minutes, minutes - hour));
+  }
+
+  return (diff * Math.PI) / 180;
 }
 
 
