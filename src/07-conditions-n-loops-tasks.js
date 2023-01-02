@@ -219,8 +219,13 @@ function findFirstSingleChar(str) {
  *   5, 3, true, true   => '[3, 5]'
  *
  */
-function getIntervalString(/* a, b, isStartIncluded, isEndIncluded */) {
-  throw new Error('Not implemented');
+function getIntervalString(a, b, isStartIncluded, isEndIncluded) {
+  const startSymbol = isStartIncluded ? '[' : '(';
+  const endSymbol = isEndIncluded ? ']' : ')';
+  const start = Math.min(a, b);
+  const end = Math.max(a, b);
+
+  return `${startSymbol}${start}, ${end}${endSymbol}`;
 }
 
 
@@ -364,8 +369,11 @@ function toNaryString(num, n) {
  *   ['/web/assets/style.css', '/.bin/mocha',  '/read.me'] => '/'
  *   ['/web/favicon.ico', '/web-scripts/dump', '/verbalizer/logs'] => '/'
  */
-function getCommonDirectoryPath(/* pathes */) {
-  throw new Error('Not implemented');
+function getCommonDirectoryPath(pathes) {
+  if (pathes.some((path) => path[0] !== '/')) return '';
+  const arr = pathes.map((path) => path.split('/'));
+  const res = arr[0].filter((item, i) => arr.every((pathArr) => pathArr[i] === item));
+  return [...res, ''].join('/');
 }
 
 
