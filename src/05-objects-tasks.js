@@ -1,3 +1,4 @@
+/* eslint-disable no-shadow */
 /* ************************************************************************************************
  *                                                                                                *
  * Please read the following tutorial before implementing tasks:                                   *
@@ -20,8 +21,12 @@
  *    console.log(r.height);      // => 20
  *    console.log(r.getArea());   // => 200
  */
-function Rectangle(/* width, height */) {
-  throw new Error('Not implemented');
+function Rectangle(width, height) {
+  return {
+    width,
+    height,
+    getArea: () => width * height,
+  };
 }
 
 
@@ -112,33 +117,186 @@ function fromJSON(proto, json) {
  *  For more examples see unit tests.
  */
 
+// const cssSelectorBuilder = {
+//   element(/* value */) {
+//     throw new Error('Not implemented');
+//   },
+
+//   id(/* value */) {
+//     throw new Error('Not implemented');
+//   },
+
+//   class(/* value */) {
+//     throw new Error('Not implemented');
+//   },
+
+//   attr(/* value */) {
+//     throw new Error('Not implemented');
+//   },
+
+//   pseudoClass(/* value */) {
+//     throw new Error('Not implemented');
+//   },
+
+//   pseudoElement(/* value */) {
+//     throw new Error('Not implemented');
+//   },
+
+//   combine(/* selector1, combinator, selector2 */) {
+//     throw new Error('Not implemented');
+//   },
+// };
+// eslint-disable-next-line func-names
+class CssBuilder {
+  constructor(value, context, selector1 = '', selector2 = '') {
+    this.obj = {
+      element: 0,
+      id: 1,
+      class: 2,
+      attr: 3,
+      pseudoClass: 4,
+      pseudoElement: 5,
+    };
+    this.arr = [];
+    this.cont = context;
+    this.selector1 = selector1;
+    this.selector2 = selector2;
+    this.val = value;
+    this.string = '';
+    this.countEl = 0;
+    this.countId = 0;
+    this.countPsEl = 0;
+    switch (this.cont) {
+      case 'element':
+        this.element(this.val);
+        break;
+      case 'id':
+        this.id(this.val);
+        break;
+      case 'class':
+        this.class(this.val);
+        break;
+      case 'attr':
+        this.attr(this.val);
+        break;
+      case 'pseudoClass':
+        this.pseudoClass(this.val);
+        break;
+      case 'pseudoElement':
+        this.pseudoElement(this.val);
+        break;
+      case 'combine':
+        this.combine(this.selector1, this.val, this.selector2);
+        break;
+      default:
+    }
+  }
+
+  element(value) {
+    this.countEl += 1;
+    this.cont = 'element';
+    this.errorMessage();
+    this.errorFollow();
+    this.string = `${this.string}${value}`;
+    return this;
+  }
+
+  id(value) {
+    this.countId += 1;
+    this.cont = 'id';
+    this.errorMessage();
+    this.errorFollow();
+    this.string = `${this.string}#${value}`;
+    return this;
+  }
+
+  class(value) {
+    this.cont = 'class';
+    this.errorFollow();
+    this.string = `${this.string}.${value}`;
+    return this;
+  }
+
+  attr(value) {
+    this.cont = 'attr';
+    this.errorFollow();
+    this.string = `${this.string}[${value}]`;
+    return this;
+  }
+
+  pseudoClass(value) {
+    this.cont = 'pseudoClass';
+    this.errorFollow();
+    this.string = `${this.string}:${value}`;
+    return this;
+  }
+
+  pseudoElement(value) {
+    this.cont = 'pseudoElement';
+    this.countPsEl += 1;
+    this.errorMessage();
+    this.errorFollow();
+    this.string = `${this.string}::${value}`;
+    return this;
+  }
+
+  combine(selector1, combinator, selector2) {
+    const comb1 = selector1.string;
+    const comb2 = selector2.string;
+    this.string = `${this.string}${comb1} ${combinator} ${comb2}`;
+    return this;
+  }
+
+  errorMessage() {
+    if (this.countEl > 1 || this.countId > 1 || this.countPsEl > 1) {
+      throw new Error('Element, id and pseudo-element should not occur more then one time inside the selectorl');
+    }
+  }
+
+  errorFollow() {
+    this.arr.push(this.obj[this.cont]);
+    if (this.arr.length > 1) {
+      this.arr.forEach((item, indx) => {
+        if (item > this.arr[indx + 1]) {
+          throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+        }
+      });
+    }
+  }
+
+  stringify() {
+    return this.string;
+  }
+}
+
 const cssSelectorBuilder = {
-  element(/* value */) {
-    throw new Error('Not implemented');
+
+  element(value) {
+    return new CssBuilder(value, 'element');
   },
 
-  id(/* value */) {
-    throw new Error('Not implemented');
+  id(value) {
+    return new CssBuilder(value, 'id');
   },
 
-  class(/* value */) {
-    throw new Error('Not implemented');
+  class(value) {
+    return new CssBuilder(value, 'class');
   },
 
-  attr(/* value */) {
-    throw new Error('Not implemented');
+  attr(value) {
+    return new CssBuilder(value, 'attr');
   },
 
-  pseudoClass(/* value */) {
-    throw new Error('Not implemented');
+  pseudoClass(value) {
+    return new CssBuilder(value, 'pseudoClass');
   },
 
-  pseudoElement(/* value */) {
-    throw new Error('Not implemented');
+  pseudoElement(value) {
+    return new CssBuilder(value, 'pseudoElement');
   },
 
-  combine(/* selector1, combinator, selector2 */) {
-    throw new Error('Not implemented');
+  combine(selector1, combinator, selector2) {
+    return new CssBuilder(combinator, 'combine', selector1, selector2);
   },
 };
 
